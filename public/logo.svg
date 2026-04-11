@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" fill="none">
+  <!-- Icon matching logo-icon.svg but at 48x48 offset -->
+  <g>
+    <rect x="1" y="1" width="46" height="46" rx="12" fill="url(#fullBgGrad)"/>
+    <rect x="10" y="10" width="28" height="3.5" rx="1.75" fill="white" opacity="0.95"/>
+    <rect x="10" y="10" width="3.5" height="28" rx="1.75" fill="white" opacity="0.9"/>
+    <line x1="17.5" y1="13.5" x2="24" y2="28" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+    <line x1="30.5" y1="13.5" x2="24" y2="28" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+    <rect x="34.5" y="10" width="3.5" height="28" rx="1.75" fill="white" opacity="0.9"/>
+    <rect x="10" y="34.5" width="28" height="3.5" rx="1.75" fill="url(#fullAccentGrad)" opacity="0.95"/>
+    <circle cx="11.75" cy="11.75" r="2.5" fill="#38BDF8"/>
+    <circle cx="36.25" cy="11.75" r="2.5" fill="#38BDF8"/>
+    <circle cx="24" cy="28" r="3" fill="#34D399"/>
+    <circle cx="11.75" cy="36.25" r="2.5" fill="#818CF8"/>
+    <circle cx="36.25" cy="36.25" r="2.5" fill="#818CF8"/>
+  </g>
+
+  <!-- Text: InfraMitra -->
+  <text x="58" y="32" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="700" font-size="26" fill="currentColor">
+    <tspan fill="currentColor">Infra</tspan><tspan fill="url(#fullTextGrad)">Mitra</tspan>
+  </text>
+
+  <defs>
+    <linearGradient id="fullBgGrad" x1="1" y1="1" x2="47" y2="47" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0C1222"/>
+      <stop offset="50%" stop-color="#162032"/>
+      <stop offset="100%" stop-color="#0C1222"/>
+    </linearGradient>
+    <linearGradient id="fullAccentGrad" x1="10" y1="36" x2="38" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+    <linearGradient id="fullTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+</svg>

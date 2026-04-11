@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Rounded square background with gradient -->
+  <rect x="1" y="1" width="46" height="46" rx="12" fill="url(#bgGrad)"/>
+
+  <!-- Abstract infrastructure network: interconnected nodes forming an "I" + "M" shape -->
+  <!-- Top horizontal bar (Infrastructure) -->
+  <rect x="10" y="10" width="28" height="3.5" rx="1.75" fill="white" opacity="0.95"/>
+
+  <!-- Left vertical of M / I -->
+  <rect x="10" y="10" width="3.5" height="28" rx="1.75" fill="white" opacity="0.9"/>
+
+  <!-- Center V of M -->
+  <line x1="17.5" y1="13.5" x2="24" y2="28" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <line x1="30.5" y1="13.5" x2="24" y2="28" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Right vertical of M -->
+  <rect x="34.5" y="10" width="3.5" height="28" rx="1.75" fill="white" opacity="0.9"/>
+
+  <!-- Bottom horizontal bar (connection/base) -->
+  <rect x="10" y="34.5" width="28" height="3.5" rx="1.75" fill="url(#accentGrad)" opacity="0.95"/>
+
+  <!-- Network nodes at key intersections -->
+  <circle cx="11.75" cy="11.75" r="2.5" fill="#38BDF8"/>
+  <circle cx="36.25" cy="11.75" r="2.5" fill="#38BDF8"/>
+  <circle cx="24" cy="28" r="3" fill="#34D399"/>
+  <circle cx="11.75" cy="36.25" r="2.5" fill="#818CF8"/>
+  <circle cx="36.25" cy="36.25" r="2.5" fill="#818CF8"/>
+
+  <!-- Subtle connecting lines between nodes -->
+  <line x1="14" y1="14" x2="21.5" y2="26" stroke="#38BDF8" stroke-width="0.8" opacity="0.4"/>
+  <line x1="34" y1="14" x2="26.5" y2="26" stroke="#38BDF8" stroke-width="0.8" opacity="0.4"/>
+
+  <defs>
+    <linearGradient id="bgGrad" x1="1" y1="1" x2="47" y2="47" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0C1222"/>
+      <stop offset="50%" stop-color="#162032"/>
+      <stop offset="100%" stop-color="#0C1222"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="10" y1="36" x2="38" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+</svg>
