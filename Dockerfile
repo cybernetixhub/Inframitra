@@ -13,7 +13,7 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build Next.js
+# Build Next.js (standalone output)
 RUN npm run build
 
 # ── Stage 3: Production runner ──
@@ -21,16 +21,19 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy built assets
+# Copy built assets from standalone output
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+# Copy Prisma files needed for migrations
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
@@ -44,6 +47,6 @@ RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
 
 USER nextjs
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "server.js"]

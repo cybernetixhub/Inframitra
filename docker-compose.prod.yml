@@ -24,12 +24,12 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3000:3000"
     environment:
       DATABASE_URL: postgresql://inframitra:${DB_PASSWORD:-InfraMitra@2026}@db:5432/hardware_marketplace
       AUTH_SECRET: ${AUTH_SECRET:-change-me-generate-with-openssl-rand-base64-32}
-      NEXTAUTH_URL: ${APP_URL:-http://localhost:3001}
-      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost:3001}
+      NEXTAUTH_URL: ${APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost:3000}
       UPLOAD_DIR: ./public/uploads
       # Google OAuth (optional)
       AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
