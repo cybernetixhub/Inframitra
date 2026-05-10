@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Pencil } from "lucide-react";
 
 const PRODUCT_STATUSES = [
   "DRAFT",
@@ -51,17 +55,28 @@ export function AdminProductActions({
   }
 
   return (
-    <select
-      value={currentStatus}
-      onChange={(e) => handleStatusChange(e.target.value)}
-      disabled={loading}
-      className="h-7 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
-    >
-      {PRODUCT_STATUSES.map((status) => (
-        <option key={status} value={status}>
-          {status.replace("_", " ")}
-        </option>
-      ))}
-    </select>
+    <div className="flex items-center gap-2">
+      <select
+        value={currentStatus}
+        onChange={(e) => handleStatusChange(e.target.value)}
+        disabled={loading}
+        className="h-7 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+      >
+        {PRODUCT_STATUSES.map((status) => (
+          <option key={status} value={status}>
+            {status.replace("_", " ")}
+          </option>
+        ))}
+      </select>
+      <Link
+        href={`/admin/products/${productId}/edit`}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon-sm" })
+        )}
+      >
+        <Pencil className="size-4" />
+        <span className="sr-only">Edit product</span>
+      </Link>
+    </div>
   );
 }

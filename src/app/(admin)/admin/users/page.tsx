@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -66,9 +67,12 @@ export default async function AdminUsersPage() {
                         {user.name?.charAt(0)?.toUpperCase() || "U"}
                       </div>
                     )}
-                    <span className="font-medium">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
                       {user.name || "Unnamed"}
-                    </span>
+                    </Link>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">

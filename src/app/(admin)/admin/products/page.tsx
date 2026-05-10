@@ -10,7 +10,9 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { LinkButton } from "@/components/shared/link-button";
 import { AdminProductActions } from "@/components/admin/product-actions";
+import { Plus } from "lucide-react";
 
 export const metadata = {
   title: "Product Management",
@@ -36,13 +38,19 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Product Management
-        </h1>
-        <p className="text-muted-foreground">
-          Review, approve, and manage all product listings.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Product Management
+          </h1>
+          <p className="text-muted-foreground">
+            Review, approve, and manage all product listings.
+          </p>
+        </div>
+        <LinkButton href="/admin/products/new">
+          <Plus className="mr-2 size-4" />
+          Add Product
+        </LinkButton>
       </div>
 
       {products.length === 0 ? (
