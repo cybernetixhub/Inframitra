@@ -1,1 +1,86 @@
+name: InfraMitra CI/CD Pipeline
 
+on:
+  push:
+    branches:
+      - main
+jobs:
+
+# ---------------------------
+# 🧱 STAGE 1: Checkout
+# ---------------------------
+  checkout:
+    name: 🔄 Checkout Code
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+# ---------------------------
+# 🧱 STAGE 2: Prepare Workspace
+# ---------------------------
+  prepare:
+    name: ⚙️ Prepare Server Workspace
+    runs-on: self-hosted
+    needs: checkout
+
+    steps:
+      - name: Fix permissions (no sudo needed ideally)
+        run: |
+          chown -R github-runner:github-runner /home/github-runner/app || true
+      - name: Create app directory
+        run: |
+          mkdir -p /home/github-runner/app
+# ---------------------------
+# 🧱 STAGE 3: Sync Code
+# ---------------------------
+  sync:
+    name: 📦 Sync Code to Server
+    runs-on: self-hosted
+    needs: prepare
+
+    steps:
+      - name: Sync Code
+        run: |
+          rsync -av --delete \
+            --exclude ".env" \
+            --exclude "node_modules" \
+            ./ /home/github-runner/app/
+# ---------------------------
+# 🧱 STAGE 4: Deploy
+# ---------------------------
+  deploy:
+    name: 🚀 Deploy Application
+    runs-on: self-hosted
+    needs: sync
+
+    steps:
+      - name: Docker Deploy
+        run: |
+          cd /home/github-runner/app
+          docker compose down || true
+          docker compose up -d --build
+# ---------------------------
+# 🧱 STAGE 5: Health Check
+# ---------------------------
+  health:
+    name: ❤️ Health Check
+    runs-on: self-hosted
+    needs: deploy
+
+    steps:
+      - name: Wait for service
+        run: sleep 10
+      - name: Validate API
+        run: curl -f http://localhost:3000 || exit 1
+
+# ---------------------------
+# 🧱 STAGE 6: Runtime Status
+# ---------------------------
+  runtime:
+    name: 📊 Runtime Status
+    runs-on: self-hosted
+    needs: health
+    steps:
+      - name: Show running containers
+        run: docker ps
