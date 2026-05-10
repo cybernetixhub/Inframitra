@@ -16,7 +16,7 @@ services:
         condition: service_healthy
 
     environment:
-      DATABASE_URL: "postgresql://inframitra:${POSTGRES_PASSWORD}@db:5432/hardware_marketplace"
+      DATABASE_URL=postgresql://inframitra:strongpassword@db:5432/hardware_marketplace
 
   db:
     image: postgres:16-alpine
