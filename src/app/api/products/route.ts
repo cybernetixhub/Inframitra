@@ -45,6 +45,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (minPrice || maxPrice) {
+      if (minPrice && isNaN(Number(minPrice))) {
+        return NextResponse.json(
+          { error: "minPrice must be a valid number" },
+          { status: 400 }
+        );
+      }
+      if (maxPrice && isNaN(Number(maxPrice))) {
+        return NextResponse.json(
+          { error: "maxPrice must be a valid number" },
+          { status: 400 }
+        );
+      }
       where.price = {};
       if (minPrice) {
         where.price.gte = new Prisma.Decimal(minPrice);

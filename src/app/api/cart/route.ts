@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { Prisma } from "@/generated/prisma";
 
 export async function GET() {
   try {
@@ -193,6 +194,15 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(cartItem);
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return NextResponse.json(
+        { error: "Cart item not found" },
+        { status: 404 }
+      );
+    }
     console.error("Error updating cart:", error);
     return NextResponse.json(
       { error: "Failed to update cart" },
@@ -228,6 +238,15 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return NextResponse.json(
+        { error: "Cart item not found" },
+        { status: 404 }
+      );
+    }
     console.error("Error removing from cart:", error);
     return NextResponse.json(
       { error: "Failed to remove from cart" },

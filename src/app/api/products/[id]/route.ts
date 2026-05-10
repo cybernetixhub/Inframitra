@@ -150,49 +150,51 @@ export async function PUT(
     if (metaDescription !== undefined)
       updateData.metaDescription = metaDescription;
 
-    // Handle images replacement
-    if (images !== undefined) {
-      await prisma.productImage.deleteMany({ where: { productId: id } });
-      if (images.length > 0) {
-        await prisma.productImage.createMany({
-          data: images.map(
-            (img: { url: string; alt?: string }, index: number) => ({
-              productId: id,
-              url: img.url,
-              alt: img.alt || "",
-              sortOrder: index,
-            })
-          ),
-        });
+    const updated = await prisma.$transaction(async (tx) => {
+      // Handle images replacement
+      if (images !== undefined) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (images.length > 0) {
+          await tx.productImage.createMany({
+            data: images.map(
+              (img: { url: string; alt?: string }, index: number) => ({
+                productId: id,
+                url: img.url,
+                alt: img.alt || "",
+                sortOrder: index,
+              })
+            ),
+          });
+        }
       }
-    }
 
-    // Handle specs replacement
-    if (specs !== undefined) {
-      await prisma.productSpec.deleteMany({ where: { productId: id } });
-      if (specs.length > 0) {
-        await prisma.productSpec.createMany({
-          data: specs.map(
-            (spec: { label: string; value: string }, index: number) => ({
-              productId: id,
-              label: spec.label,
-              value: spec.value,
-              sortOrder: index,
-            })
-          ),
-        });
+      // Handle specs replacement
+      if (specs !== undefined) {
+        await tx.productSpec.deleteMany({ where: { productId: id } });
+        if (specs.length > 0) {
+          await tx.productSpec.createMany({
+            data: specs.map(
+              (spec: { label: string; value: string }, index: number) => ({
+                productId: id,
+                label: spec.label,
+                value: spec.value,
+                sortOrder: index,
+              })
+            ),
+          });
+        }
       }
-    }
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: updateData,
-      include: {
-        images: { orderBy: { sortOrder: "asc" } },
-        specs: { orderBy: { sortOrder: "asc" } },
-        category: true,
-        brand: true,
-      },
+      return tx.product.update({
+        where: { id },
+        data: updateData,
+        include: {
+          images: { orderBy: { sortOrder: "asc" } },
+          specs: { orderBy: { sortOrder: "asc" } },
+          category: true,
+          brand: true,
+        },
+      });
     });
 
     return NextResponse.json(updated);

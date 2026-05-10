@@ -92,57 +92,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate stock
-    for (const item of cartItems) {
-      if (item.product.status !== "ACTIVE") {
-        return NextResponse.json(
-          { error: `"${item.product.title}" is no longer available` },
-          { status: 400 }
-        );
-      }
-      if (item.product.quantity < item.quantity) {
-        return NextResponse.json(
-          {
-            error: `Insufficient stock for "${item.product.title}" (available: ${item.product.quantity})`,
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Calculate totals
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + Number(item.product.price) * item.quantity,
-      0
-    );
-    const tax = subtotal * TAX_RATE;
-    const shippingCost =
-      subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-    const total = subtotal + tax + shippingCost;
-
-    // Process payment
-    const provider = getPaymentProvider();
-    const paymentResult = await provider.processPayment(
-      total,
-      "INR",
-      paymentDetails
-    );
-
-    if (!paymentResult.success) {
-      return NextResponse.json(
-        { error: paymentResult.error || "Payment failed" },
-        { status: 400 }
-      );
-    }
-
-    // Create order in a transaction
+    // Create order in a transaction with stock validation inside the transaction
     const order = await prisma.$transaction(async (tx) => {
+      // Validate stock inside the transaction to prevent race conditions
+      for (const item of cartItems) {
+        const product = await tx.product.findUnique({
+          where: { id: item.product.id },
+          select: { quantity: true, status: true, title: true },
+        });
+
+        if (!product || product.status !== "ACTIVE") {
+          throw new Error(
+            `VALIDATION:"${item.product.title}" is no longer available`
+          );
+        }
+        if (product.quantity < item.quantity) {
+          throw new Error(
+            `VALIDATION:Insufficient stock for "${item.product.title}" (available: ${product.quantity})`
+          );
+        }
+      }
+
+      // Calculate totals
+      const subtotal = cartItems.reduce(
+        (sum, item) => sum + Number(item.product.price) * item.quantity,
+        0
+      );
+      const tax = subtotal * TAX_RATE;
+      const shippingCost =
+        subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+      const total = subtotal + tax + shippingCost;
+
+      // Create order in PENDING state first
       const newOrder = await tx.order.create({
         data: {
           orderNumber: generateOrderNumber(),
           buyerId: session.user.id,
-          status: "CONFIRMED",
-          paymentStatus: "PAID",
+          status: "PENDING",
+          paymentStatus: "PENDING",
           subtotal: new Prisma.Decimal(subtotal.toFixed(2)),
           tax: new Prisma.Decimal(tax.toFixed(2)),
           shippingCost: new Prisma.Decimal(shippingCost.toFixed(2)),
@@ -155,7 +142,6 @@ export async function POST(request: NextRequest) {
           shippingCountry,
           shippingPhone: shippingPhone || null,
           paymentMethod: "card",
-          paymentRef: paymentResult.transactionId,
           items: {
             create: cartItems.map((item) => ({
               productId: item.product.id,
@@ -169,6 +155,41 @@ export async function POST(request: NextRequest) {
               productImage: item.product.images[0]?.url || null,
             })),
           },
+        },
+        include: {
+          items: true,
+        },
+      });
+
+      // Process payment
+      const provider = getPaymentProvider();
+      const paymentResult = await provider.processPayment(
+        total,
+        "INR",
+        paymentDetails
+      );
+
+      if (!paymentResult.success) {
+        // Payment failed — mark order as CANCELLED
+        await tx.order.update({
+          where: { id: newOrder.id },
+          data: {
+            status: "CANCELLED",
+            paymentStatus: "FAILED",
+          },
+        });
+        throw new Error(
+          `PAYMENT:${paymentResult.error || "Payment failed"}`
+        );
+      }
+
+      // Payment succeeded — update order to CONFIRMED
+      const confirmedOrder = await tx.order.update({
+        where: { id: newOrder.id },
+        data: {
+          status: "CONFIRMED",
+          paymentStatus: "PAID",
+          paymentRef: paymentResult.transactionId,
         },
         include: {
           items: true,
@@ -192,11 +213,25 @@ export async function POST(request: NextRequest) {
         where: { userId: session.user.id },
       });
 
-      return newOrder;
+      return confirmedOrder;
     });
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.startsWith("VALIDATION:")) {
+        return NextResponse.json(
+          { error: error.message.replace("VALIDATION:", "") },
+          { status: 400 }
+        );
+      }
+      if (error.message.startsWith("PAYMENT:")) {
+        return NextResponse.json(
+          { error: error.message.replace("PAYMENT:", "") },
+          { status: 400 }
+        );
+      }
+    }
     console.error("Error processing checkout:", error);
     return NextResponse.json(
       { error: "Failed to process checkout" },

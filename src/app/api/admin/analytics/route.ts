@@ -13,7 +13,7 @@ export async function GET() {
       totalUsers,
       totalProducts,
       totalOrders,
-      orderTotals,
+      revenueAggregate,
       usersByRole,
       productsByStatus,
       ordersByStatus,
@@ -22,8 +22,8 @@ export async function GET() {
       prisma.user.count(),
       prisma.product.count(),
       prisma.order.count(),
-      prisma.order.findMany({
-        select: { total: true },
+      prisma.order.aggregate({
+        _sum: { total: true },
       }),
       prisma.user.groupBy({
         by: ["role"],
@@ -51,10 +51,7 @@ export async function GET() {
       }),
     ]);
 
-    const totalRevenue = orderTotals.reduce(
-      (sum, order) => sum + Number(order.total),
-      0
-    );
+    const totalRevenue = Number(revenueAggregate._sum.total ?? 0);
 
     const roleBreakdown = usersByRole.reduce(
       (acc, item) => {

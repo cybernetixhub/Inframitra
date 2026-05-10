@@ -3,6 +3,7 @@ import { signUpSchema } from "@/lib/validations";
 import { slugify } from "@/lib/format";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 export async function POST(request: Request) {
   try {
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof Error && error.name === "ZodError") {
+    if (error instanceof ZodError) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
     console.error("Signup error:", error);
