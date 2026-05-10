@@ -10,10 +10,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client (needs a dummy DATABASE_URL for codegen, no actual connection)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN npx prisma generate
 
 # Build Next.js (standalone output)
+# DATABASE_URL is set but prisma won't connect at build time (lazy init)
 RUN npm run build
 
 # ── Stage 3: Production runner ──
