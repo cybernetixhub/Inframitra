@@ -2,6 +2,7 @@ services:
   web:
     build:
       context: .
+      target: runner
     ports:
       - "3000:3000"
     restart: always
@@ -38,6 +39,7 @@ services:
   migrate:
     build:
       context: .
+      target: migrator
     env_file:
       - .env
     environment:

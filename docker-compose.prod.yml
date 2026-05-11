@@ -49,11 +49,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: migrator
     environment:
       DATABASE_URL: postgresql://inframitra:${DB_PASSWORD:-InfraMitra@2026}@db:5432/hardware_marketplace
     command: >
       sh -c "
         npx prisma migrate deploy &&
+        npx prisma generate &&
         npx prisma db seed &&
         echo '✅ Migrations and seed complete!'
       "
