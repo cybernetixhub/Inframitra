@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { LinkButton } from "@/components/shared/link-button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
+import { UserRbacGroupsManager } from "@/components/admin/user-rbac-groups-manager";
+import { UserActiveToggle } from "@/components/admin/user-active-toggle";
 import {
   ArrowLeft,
   Mail,
@@ -23,6 +25,7 @@ import {
   ShoppingCart,
   Package,
   Star,
+  Shield,
 } from "lucide-react";
 
 export const metadata = {
@@ -68,6 +71,19 @@ export default async function AdminUserDetailPage({
           createdAt: true,
         },
       },
+      rbacGroups: {
+        include: {
+          group: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              permissions: true,
+            },
+          },
+        },
+        orderBy: { assignedAt: "desc" },
+      },
     },
   });
 
@@ -81,6 +97,18 @@ export default async function AdminUserDetailPage({
       : user.role === "SELLER"
         ? "secondary"
         : "outline";
+
+  // Get all available groups for the manager component
+  const allGroups = await prisma.rbacGroup.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+    },
+  });
+
+  const userGroupIds = user.rbacGroups.map((rg) => rg.group.id);
 
   return (
     <div className="space-y-6">
@@ -104,22 +132,48 @@ export default async function AdminUserDetailPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-4">
-              {user.image ? (
-                <img
-                  src={user.image}
-                  alt={user.name || "User"}
-                  className="size-16 rounded-full object-cover"
+              <div className="relative">
+                {user.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name || "User"}
+                    className="size-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
+                    {user.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                )}
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-background ${
+                    user.isActive ? "bg-emerald-500" : "bg-red-500"
+                  }`}
+                  title={user.isActive ? "Active" : "Disabled"}
                 />
-              ) : (
-                <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
-                  {user.name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-              )}
+              </div>
               <div className="flex-1 space-y-1">
                 <h2 className="text-xl font-semibold">
                   {user.name || "Unnamed User"}
                 </h2>
-                <Badge variant={roleBadgeVariant}>{user.role}</Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={roleBadgeVariant}>{user.role}</Badge>
+                  {user.rbacGroups.map((rg) => (
+                    <Link
+                      key={rg.group.id}
+                      href={`/admin/rbac/${rg.group.id}`}
+                    >
+                      <Badge variant="secondary">
+                        <Shield className="mr-1 size-3" />
+                        {rg.group.name}
+                      </Badge>
+                    </Link>
+                  ))}
+                  <Badge
+                    variant={user.isActive ? "default" : "destructive"}
+                  >
+                    {user.isActive ? "Active" : "Disabled"}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -155,20 +209,48 @@ export default async function AdminUserDetailPage({
           </CardContent>
         </Card>
 
-        {/* RBAC Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Role & Access</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UserDetailActions
-              userId={user.id}
-              currentRole={user.role}
-              userName={user.name || user.email}
-            />
-          </CardContent>
-        </Card>
+        {/* Role & Access Section */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Role & Access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UserDetailActions
+                userId={user.id}
+                currentRole={user.role}
+                userName={user.name || user.email}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UserActiveToggle
+                userId={user.id}
+                isActive={user.isActive}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      {/* RBAC Groups */}
+      <Card>
+        <CardHeader>
+          <CardTitle>RBAC Groups</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <UserRbacGroupsManager
+            userId={user.id}
+            currentGroupIds={userGroupIds}
+            allGroups={allGroups}
+          />
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">

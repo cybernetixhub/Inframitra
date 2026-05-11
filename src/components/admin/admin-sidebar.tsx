@@ -20,6 +20,7 @@ import {
   ShoppingCart,
   Menu,
   Shield,
+  ShieldCheck,
   FileText,
   UserPlus,
 } from "lucide-react";
@@ -39,6 +40,7 @@ const adminLinks = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/requests", label: "Service Requests", icon: FileText },
   { href: "/admin/leads", label: "Sales Leads", icon: UserPlus },
+  { href: "/admin/rbac", label: "RBAC Groups", icon: ShieldCheck },
 ];
 
 export function AdminSidebar({ user }: AdminSidebarProps) {

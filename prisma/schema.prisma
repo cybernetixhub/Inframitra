@@ -73,6 +73,8 @@ model User {
   buyerConversations  Conversation[] @relation("BuyerConversations")
   sellerConversations Conversation[] @relation("SellerConversations")
   serviceRequests     ServiceRequest[]
+  rbacGroups          UserRbacGroup[]
+  isActive            Boolean   @default(true)
 }
 
 model Account {
@@ -471,4 +473,33 @@ model SalesLead {
 
   @@index([status])
   @@index([createdAt])
+}
+
+// ─── RBAC: Groups & Permissions ─────────────────────────────
+
+model RbacGroup {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[]
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users UserRbacGroup[]
+}
+
+model UserRbacGroup {
+  id         String   @id @default(cuid())
+  userId     String
+  groupId    String
+  assignedAt DateTime @default(now())
+  assignedBy String?
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group RbacGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
 }
