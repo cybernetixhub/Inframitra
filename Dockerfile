@@ -24,8 +24,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
 COPY package.json ./package.json
+COPY package-lock.json ./package-lock.json
 COPY src/generated ./src/generated
-RUN npm install -g tsx dotenv
+RUN npm install -g tsx
 
 # ── Stage 4: Production runner ──
 FROM node:20-alpine AS runner
