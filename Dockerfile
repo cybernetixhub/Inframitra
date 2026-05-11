@@ -17,18 +17,15 @@ RUN npx prisma generate
 # Build Next.js (standalone output)
 RUN npm run build
 
-# ── Stage 3: Migrate runner (used by docker compose migrate service) ──
+# ── Stage 3: Migrator (full environment for prisma migrate + seed) ──
 FROM node:20-alpine AS migrator
+RUN npm install -g tsx
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY prisma ./prisma
-COPY prisma.config.ts ./prisma.config.ts
-COPY package.json ./package.json
-COPY package-lock.json ./package-lock.json
-COPY src/generated ./src/generated
-RUN npm install -g tsx
+COPY . .
+RUN npx prisma generate
 
-# ── Stage 4: Production runner ──
+# ── Stage 4: Production runner (minimal) ──
 FROM node:20-alpine AS runner
 WORKDIR /app
 
