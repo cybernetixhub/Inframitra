@@ -14,7 +14,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Upload, X } from "lucide-react";
 
 interface Category {
   id: string;
@@ -52,6 +52,8 @@ export default function AdminNewProductPage() {
   const [shippingInfo, setShippingInfo] = useState("");
   const [specs, setSpecs] = useState<Spec[]>([]);
   const [imageUrls, setImageUrls] = useState("");
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -121,12 +123,13 @@ export default function AdminNewProductPage() {
       const validSpecs = specs.filter((s) => s.label && s.value);
       if (validSpecs.length > 0) body.specs = validSpecs;
 
-      const urls = imageUrls
+      const pastedUrls = imageUrls
         .split("\n")
         .map((u) => u.trim())
         .filter(Boolean);
-      if (urls.length > 0) {
-        body.images = urls.map((url) => ({ url, alt: title }));
+      const allImageUrls = [...uploadedImages, ...pastedUrls];
+      if (allImageUrls.length > 0) {
+        body.images = allImageUrls.map((url) => ({ url, alt: title }));
       }
 
       const res = await fetch("/api/products", {
@@ -326,22 +329,100 @@ export default function AdminNewProductPage() {
           <CardHeader>
             <CardTitle>Product Images</CardTitle>
             <CardDescription>
-              Paste image URLs, one per line.
+              Upload images or paste URLs. First image will be the primary image.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* File Upload */}
             <div className="space-y-2">
-              <Label htmlFor="imageUrls">Image URLs</Label>
+              <Label>Upload Images</Label>
+              <div className="flex items-center gap-3">
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed px-4 py-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                  <Upload className="size-4" />
+                  {uploading ? "Uploading..." : "Choose files"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+                      setUploading(true);
+                      try {
+                        const formData = new FormData();
+                        for (let i = 0; i < files.length; i++) {
+                          formData.append("files", files[i]);
+                        }
+                        const res = await fetch("/api/upload", {
+                          method: "POST",
+                          body: formData,
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          setUploadedImages((prev) => [...prev, ...data.urls]);
+                          toast.success(`${data.urls.length} image(s) uploaded`);
+                        } else {
+                          const data = await res.json();
+                          toast.error(data.error || "Upload failed");
+                        }
+                      } catch {
+                        toast.error("Upload failed");
+                      } finally {
+                        setUploading(false);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </label>
+                <span className="text-xs text-muted-foreground">
+                  Max 5MB per image. JPG, PNG, WebP accepted.
+                </span>
+              </div>
+            </div>
+
+            {/* Uploaded image previews */}
+            {uploadedImages.length > 0 && (
+              <div className="space-y-2">
+                <Label>Uploaded Images</Label>
+                <div className="flex flex-wrap gap-3">
+                  {uploadedImages.map((url, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Upload ${idx + 1}`}
+                        className="h-20 w-20 rounded-lg object-cover border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setUploadedImages((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                        className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-destructive text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* URL input as alternative */}
+            <div className="space-y-2">
+              <Label htmlFor="imageUrls">Or paste image URLs</Label>
               <Textarea
                 id="imageUrls"
                 value={imageUrls}
                 onChange={(e) => setImageUrls(e.target.value)}
                 placeholder={"https://example.com/image1.jpg\nhttps://example.com/image2.jpg"}
-                rows={4}
+                rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Enter one image URL per line. The first image will be the
-                primary image.
+                One URL per line. Use this if images are hosted externally.
               </p>
             </div>
           </CardContent>
