@@ -45,6 +45,12 @@ export default function AdminSettingsPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.status) setEnvStatus(data.status);
+        if (data.config) {
+          // Show masked values as placeholders
+          if (data.config.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID) {
+            setMicrosoftTenant(data.config.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID);
+          }
+        }
       })
       .catch(() => {});
   }, []);
