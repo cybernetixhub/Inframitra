@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   FileText,
   UserPlus,
+  Settings,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -41,6 +42,7 @@ const adminLinks = [
   { href: "/admin/requests", label: "Service Requests", icon: FileText },
   { href: "/admin/leads", label: "Sales Leads", icon: UserPlus },
   { href: "/admin/rbac", label: "RBAC Groups", icon: ShieldCheck },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
